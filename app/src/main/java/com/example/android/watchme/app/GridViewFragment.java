@@ -15,12 +15,18 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -28,6 +34,7 @@ import java.net.URL;
 public class GridViewFragment extends Fragment {
 
     public GridViewAdapter mGridViewAdapter;
+    public ArrayList mGridViewData;
 
     public GridViewFragment() {
     }
@@ -49,7 +56,7 @@ public class GridViewFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             FetchMovieTask fetchMovie = new FetchMovieTask();
-            fetchMovie.execute();
+            fetchMovie.execute("popular");
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -60,11 +67,21 @@ public class GridViewFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        Integer[] mThumbIds = {
+                R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
+                R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
+                R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
+                R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
+                R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
+        };
 
-        mGridViewAdapter = new GridViewAdapter(getContext());
+        mGridViewData = new ArrayList<Integer>(Arrays.asList(mThumbIds));
+
+        mGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_layout, mGridViewData);
+
 
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
-        gridView.setAdapter(new GridViewAdapter(getActivity()));
+        gridView.setAdapter(mGridViewAdapter);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -76,12 +93,76 @@ public class GridViewFragment extends Fragment {
     }
 
 
-    public class FetchMovieTask extends AsyncTask<Void, Void, Void> {
+    public class FetchMovieTask extends AsyncTask<String, Void, Uri[]> {
 
         private final String LOG_TAG = FetchMovieTask.class.getSimpleName();
 
+
+        // Extract specific info from the JSON received
+        private String[] getMovieDataFromJson(String movieJsonStr)
+                throws JSONException {
+
+            String[] posterUrls;
+
+            JSONObject movieJson = new JSONObject(movieJsonStr);
+            JSONArray movieArray = movieJson.getJSONArray("results");
+
+            posterUrls = new String[movieArray.length()];
+            for (int i = 0; i < movieArray.length(); i++) {
+                String posterpath;
+                String releaseDate;
+                String originalTitle;
+                String overview;
+                int id;
+                double rating;
+
+                JSONObject movieData = movieArray.getJSONObject(i);
+                posterpath = movieData.getString("poster_path");
+                releaseDate = movieData.getString("release_date");
+                originalTitle = movieData.getString("original_title");
+                overview = movieData.getString("overview");
+                id = movieData.getInt("id");
+                rating = movieData.getDouble("vote_average");
+
+                //Log.v(LOG_TAG, "Poster" + posterpath);
+                posterUrls[i] = posterpath;
+
+            }
+
+            return posterUrls;
+        }
+
+
+        // Extract the poster path from JSON and return the complete url of the poster image.
+        public Uri[] getPostersFromPicasso(String movieJsonStr)
+                throws JSONException {
+
+            final String POSTER_BASE_URI = "http://image.tmdb.org/t/p";
+            final String POSTER_SIZE = "w185";
+
+            JSONObject movieJson = new JSONObject(movieJsonStr);
+            JSONArray movieArray = movieJson.getJSONArray("results");
+
+            String[] posterUrls = new String[movieArray.length()];
+            Uri[] posterUri = new Uri[movieArray.length()];
+
+            for (int i = 0; i < movieArray.length(); i++) {
+
+                JSONObject movieData = movieArray.getJSONObject(i);
+                posterUrls[i] = movieData.getString("poster_path");
+
+
+                posterUri[i] = Uri.parse(POSTER_BASE_URI).buildUpon()
+                        .appendPath(POSTER_SIZE)
+                        .appendEncodedPath(posterUrls[i])
+                        .build();
+
+            }
+            return posterUri;
+        }
+
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Uri[] doInBackground(String... params) {
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -89,21 +170,17 @@ public class GridViewFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String movieJsonStr = null;
 
-            String reference = "movie";
-            String category = "popular";
-
-
             try {
 
-                final String MOVIEDB_BASE_URL = "http://api.themoviedb.org/36";
+                final String MOVIEDB_BASE_URL = "http://api.themoviedb.org/3";
                 final String REFERENCE_PATH = "movie";
-                final String CATEGORY_PATH = "popular";
+                final String CATEGORY_PATH = params[0];
                 final String APIKEY_PARAM = "api_key";
 
                 Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
                         .appendPath(REFERENCE_PATH)
                         .appendPath(CATEGORY_PATH)
-                        .appendQueryParameter(APIKEY_PARAM,BuildConfig.MOVIE_DB_API_KEY)
+                        .appendQueryParameter(APIKEY_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                         .build();
 
                 URL url = new URL(builtUri.toString());
@@ -155,7 +232,33 @@ public class GridViewFragment extends Fragment {
                     }
                 }
             }
+
+            try {
+                return getPostersFromPicasso(movieJsonStr);
+
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Uri[] result) {
+            if (result != null) {
+                //mGridViewData.clear();
+
+
+                mGridViewData = new ArrayList(result.length);
+                for (Uri moviePoster : result) {
+
+                    mGridViewData.add(moviePoster.toString());
+
+                    Log.v(" Data ", mGridViewData.toString());
+                }
+                mGridViewAdapter.setData(mGridViewData);
+
+            }
         }
     }
 }
