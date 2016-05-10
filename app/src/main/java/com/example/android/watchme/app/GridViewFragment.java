@@ -1,5 +1,6 @@
 package com.example.android.watchme.app;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -67,15 +68,9 @@ public class GridViewFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        Integer[] mThumbIds = {
-                R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
-                R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
-                R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
-                R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
-                R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
-        };
+        String[] mTempData = {"http://i.imgur.com/DvpvklR.png","http://i.imgur.com/DvpvklR.png"};
 
-        mGridViewData = new ArrayList<Integer>(Arrays.asList(mThumbIds));
+        mGridViewData = new ArrayList<String>(Arrays.asList(mTempData));
 
         mGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_layout, mGridViewData);
 
@@ -83,10 +78,18 @@ public class GridViewFragment extends Fragment {
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
         gridView.setAdapter(mGridViewAdapter);
 
+        FetchMovieTask fetchMovie = new FetchMovieTask();
+        fetchMovie.execute("popular");
+
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(), "" + position, Toast.LENGTH_SHORT).show();
+
+                Toast.makeText(getActivity(), "" + position , Toast.LENGTH_SHORT).show();
+
+                Intent intent = new Intent(getActivity(),DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT,mGridViewData);
+                startActivity(intent);
             }
         });
         return rootView;
@@ -138,7 +141,7 @@ public class GridViewFragment extends Fragment {
                 throws JSONException {
 
             final String POSTER_BASE_URI = "http://image.tmdb.org/t/p";
-            final String POSTER_SIZE = "w185";
+            final String POSTER_SIZE = "w342";
 
             JSONObject movieJson = new JSONObject(movieJsonStr);
             JSONArray movieArray = movieJson.getJSONArray("results");
@@ -248,7 +251,7 @@ public class GridViewFragment extends Fragment {
             if (result != null) {
                 //mGridViewData.clear();
 
-
+                mGridViewData.clear();
                 mGridViewData = new ArrayList(result.length);
                 for (Uri moviePoster : result) {
 
@@ -256,6 +259,7 @@ public class GridViewFragment extends Fragment {
 
                     Log.v(" Data ", mGridViewData.toString());
                 }
+
                 mGridViewAdapter.setData(mGridViewData);
 
             }

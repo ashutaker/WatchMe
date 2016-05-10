@@ -22,7 +22,7 @@ public class GridViewAdapter extends BaseAdapter {
     private int mLayoutResourceId;
     private ArrayList<String> mUrls;
 
-    public GridViewAdapter(Context c,int layoutResourceId,ArrayList urls) {
+    public GridViewAdapter(Context c, int layoutResourceId, ArrayList urls) {
 
         this.mContext = c;
         this.mLayoutResourceId = layoutResourceId;
@@ -36,7 +36,7 @@ public class GridViewAdapter extends BaseAdapter {
 
     @Override
     public Uri getItem(int position) {
-        return  null;
+        return null;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class GridViewAdapter extends BaseAdapter {
         LayoutInflater mInflater = (LayoutInflater.from(mContext));
         if (convertView == null) {
             //imageView = new ImageView(mContext);
-            convertView = mInflater.inflate(mLayoutResourceId,null,true);
+            convertView = mInflater.inflate(mLayoutResourceId, null, true);
             imageView = (ImageView) convertView.findViewById(R.id.grid_imageview);
 
             //imageView.setPadding(8, 8, 8, 8);
@@ -58,20 +58,27 @@ public class GridViewAdapter extends BaseAdapter {
             imageView = (ImageView) convertView;
         }
 
+
         //Log.v("URI in adapter" , mUrls.get(position).toString());
         //imageView.setImageResource(mUrls.get(position));
-              Picasso.with(mContext)
+        Picasso.with(mContext)
                 .load(mUrls.get(position))
                 .into(imageView);
 
         return imageView;
     }
 
-    public void setData(ArrayList urls){
+    public void setData(ArrayList urls) {
         this.mUrls = urls;
         notifyDataSetChanged();
     }
 
     // references to our images
-
+    Integer[] mThumbIds = {
+            R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
+    };
 }

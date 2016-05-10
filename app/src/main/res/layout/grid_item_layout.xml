@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="fill"
         android:adjustViewBounds="true"
-        android:background="#9FA8DA"
         android:scaleType="centerCrop" />
 
 </LinearLayout>
