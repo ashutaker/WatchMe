@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +35,9 @@ public class GridViewFragment extends Fragment {
 
     public GridViewAdapter mGridViewAdapter;
     public ArrayList mGridViewData;
+
+    // Will contain the raw JSON response as a string.
+    String movieJsonStr = null;
 
     public GridViewFragment() {
     }
@@ -68,7 +70,7 @@ public class GridViewFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        String[] mTempData = {"http://i.imgur.com/DvpvklR.png","http://i.imgur.com/DvpvklR.png"};
+        String[] mTempData = {"http://i.imgur.com/DvpvklR.png", "http://i.imgur.com/DvpvklR.png"};
 
         mGridViewData = new ArrayList<String>(Arrays.asList(mTempData));
 
@@ -85,10 +87,11 @@ public class GridViewFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Toast.makeText(getActivity(), "" + position , Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getActivity(), "" + position, Toast.LENGTH_SHORT).show();
 
-                Intent intent = new Intent(getActivity(),DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT,mGridViewData);
+
+                Intent intent = new Intent(getActivity(), DetailActivity.class)
+                        .putExtra(Intent.EXTRA_TEXT, movieJsonStr);
                 startActivity(intent);
             }
         });
@@ -96,44 +99,14 @@ public class GridViewFragment extends Fragment {
     }
 
 
+
     public class FetchMovieTask extends AsyncTask<String, Void, Uri[]> {
 
         private final String LOG_TAG = FetchMovieTask.class.getSimpleName();
 
 
-        // Extract specific info from the JSON received
-        private String[] getMovieDataFromJson(String movieJsonStr)
-                throws JSONException {
 
-            String[] posterUrls;
 
-            JSONObject movieJson = new JSONObject(movieJsonStr);
-            JSONArray movieArray = movieJson.getJSONArray("results");
-
-            posterUrls = new String[movieArray.length()];
-            for (int i = 0; i < movieArray.length(); i++) {
-                String posterpath;
-                String releaseDate;
-                String originalTitle;
-                String overview;
-                int id;
-                double rating;
-
-                JSONObject movieData = movieArray.getJSONObject(i);
-                posterpath = movieData.getString("poster_path");
-                releaseDate = movieData.getString("release_date");
-                originalTitle = movieData.getString("original_title");
-                overview = movieData.getString("overview");
-                id = movieData.getInt("id");
-                rating = movieData.getDouble("vote_average");
-
-                //Log.v(LOG_TAG, "Poster" + posterpath);
-                posterUrls[i] = posterpath;
-
-            }
-
-            return posterUrls;
-        }
 
 
         // Extract the poster path from JSON and return the complete url of the poster image.
