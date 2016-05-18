@@ -2,26 +2,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.android.watchme.app.DetailActivityFragment"
     >
 
     <TextView
         android:id="@+id/movie_title"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
+        android:layout_height="120dp"
         android:text="Movie Title"
-        android:textAlignment="center"
-        android:textSize="65dp" />
+        android:textAlignment="textStart"
+        android:background="#26A69A"
+        android:textSize="50sp"
+        android:paddingTop="20dp"
+        android:textColor="#FFFFFF" />
 
     <ImageView
         android:id="@+id/poster"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="250dp"
         android:layout_below="@+id/movie_title"
+        android:paddingTop="8dp"
+        android:paddingLeft="16dp"
         android:src="@drawable/sample_0" />
 
     <TextView
@@ -30,6 +31,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/movie_title"
         android:layout_toRightOf="@id/poster"
+        android:paddingTop="8dp"
+        android:paddingLeft="16dp"
+        android:textSize="30sp"
         android:text="Today" />
 
     <TextView
@@ -38,13 +42,20 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/release_date"
         android:layout_toRightOf="@id/poster"
+        android:paddingLeft="16dp"
+        android:paddingTop="8dp"
+        android:textSize="20sp"
         android:text="Awesome" />
 
     <TextView
         android:id="@+id/plot"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:text="Crazzzzy Dogs"
-        android:textSize="65dp" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:lines="3"
+        android:maxLines="3"
+        android:layout_below="@id/poster"
+        android:paddingTop="10dp"
+        android:text="overview"
+        android:textSize="15sp"
+        android:ellipsize="end"/>
 </RelativeLayout>

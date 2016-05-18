@@ -1,9 +1,11 @@
 package com.example.android.watchme.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -35,6 +37,8 @@ public class GridViewFragment extends Fragment {
 
     public GridViewAdapter mGridViewAdapter;
     public ArrayList mGridViewData;
+    public String mMovieStr;
+    public final String LOG_TAG = GridViewFragment.class.getSimpleName();
 
     // Will contain the raw JSON response as a string.
     String movieJsonStr = null;
@@ -50,6 +54,12 @@ public class GridViewFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        fetchMovies();
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.gridview_menu, menu);
     }
@@ -58,8 +68,7 @@ public class GridViewFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchMovieTask fetchMovie = new FetchMovieTask();
-            fetchMovie.execute("popular");
+            fetchMovies();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -72,6 +81,7 @@ public class GridViewFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         String[] mTempData = {"http://i.imgur.com/DvpvklR.png", "http://i.imgur.com/DvpvklR.png"};
 
+
         mGridViewData = new ArrayList<String>(Arrays.asList(mTempData));
 
         mGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_layout, mGridViewData);
@@ -80,8 +90,7 @@ public class GridViewFragment extends Fragment {
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
         gridView.setAdapter(mGridViewAdapter);
 
-        FetchMovieTask fetchMovie = new FetchMovieTask();
-        fetchMovie.execute("popular");
+        fetchMovies();
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -91,22 +100,28 @@ public class GridViewFragment extends Fragment {
 
 
                 Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, movieJsonStr);
+                        .putExtra(Intent.EXTRA_TEXT, mMovieStr)
+                        .putExtra("position", position);
                 startActivity(intent);
+
+
             }
         });
         return rootView;
     }
 
+    public void fetchMovies() {
 
+        SharedPreferences prefCategory = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String category = prefCategory.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
 
-    public class FetchMovieTask extends AsyncTask<String, Void, Uri[]> {
+        FetchMovieTask fetchMovie = new FetchMovieTask();
+        fetchMovie.execute(category);
+    }
+
+    public class FetchMovieTask extends AsyncTask<String, Void, String> {
 
         private final String LOG_TAG = FetchMovieTask.class.getSimpleName();
-
-
-
-
 
 
         // Extract the poster path from JSON and return the complete url of the poster image.
@@ -137,8 +152,9 @@ public class GridViewFragment extends Fragment {
             return posterUri;
         }
 
+
         @Override
-        protected Uri[] doInBackground(String... params) {
+        protected String doInBackground(String... params) {
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -161,7 +177,7 @@ public class GridViewFragment extends Fragment {
 
                 URL url = new URL(builtUri.toString());
 
-                Log.v(LOG_TAG, url.toString());
+                //Log.v(LOG_TAG, url.toString());
 
                 // Create the request to API, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -188,7 +204,7 @@ public class GridViewFragment extends Fragment {
 
                 movieJsonStr = buffer.toString();
 
-                Log.v(LOG_TAG, movieJsonStr);
+                //Log.v(LOG_TAG, movieJsonStr);
 
 
             } catch (IOException e) {
@@ -209,31 +225,34 @@ public class GridViewFragment extends Fragment {
                 }
             }
 
-            try {
-                return getPostersFromPicasso(movieJsonStr);
 
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
-            }
-            return null;
+            return movieJsonStr;
         }
 
         @Override
-        protected void onPostExecute(Uri[] result) {
+        protected void onPostExecute(String result) {
             if (result != null) {
-                //mGridViewData.clear();
 
-                mGridViewData.clear();
-                mGridViewData = new ArrayList(result.length);
-                for (Uri moviePoster : result) {
+                mMovieStr = result;
+                Uri[] posterUrls;
+                try {
+                    JSONObject movieJson = new JSONObject(result);
+                    JSONArray movieArray = movieJson.getJSONArray("results");
+                    posterUrls = getPostersFromPicasso(result);
 
-                    mGridViewData.add(moviePoster.toString());
+                    mGridViewData.clear();
+                    mGridViewData = new ArrayList(posterUrls.length);
 
-                    Log.v(" Data ", mGridViewData.toString());
+                    for (Uri moviePoster : posterUrls) {
+                        mGridViewData.add(moviePoster.toString());
+                        //Log.v(" Urls", mGridViewData.toString());
+                    }
+
+                    mGridViewAdapter.setData(mGridViewData);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-
-                mGridViewAdapter.setData(mGridViewData);
 
             }
         }

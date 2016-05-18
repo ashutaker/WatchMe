@@ -1,13 +1,16 @@
 package com.example.android.watchme.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String LOG_TAG = MainActivity.class.getSimpleName();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +36,11 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Log.v(LOG_TAG,"Settings selected");
+            startActivity(new Intent(getApplication(),SettingsActivity.class));
             return true;
+        }else{
+            Log.v(LOG_TAG,"Dont know what happned");
         }
 
         return super.onOptionsItemSelected(item);
