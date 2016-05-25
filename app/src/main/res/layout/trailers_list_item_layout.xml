@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+<ImageView
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:src="@android:drawable/ic_media_play"/>
+    <TextView
+    android:id="@+id/trailer_link"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:text="Trailer link not available"
+    android:textAlignment="center"
+    android:textSize="20dp" />
+</LinearLayout>

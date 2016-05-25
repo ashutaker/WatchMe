@@ -100,11 +100,9 @@ public class GridViewFragment extends Fragment {
 
 
                 Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, mMovieStr)
-                        .putExtra("position", position);
+                        .putExtra(Intent.EXTRA_TEXT, getSelectedMovie(position));
+
                 startActivity(intent);
-
-
             }
         });
         return rootView;
@@ -117,6 +115,26 @@ public class GridViewFragment extends Fragment {
 
         FetchMovieTask fetchMovie = new FetchMovieTask();
         fetchMovie.execute(category);
+    }
+
+    //Extract the Movie ID of the item selected, to be passed to DetailActivity
+    public String getSelectedMovie(int position){
+
+        String movieID;
+        try {
+            JSONObject movieJson = new JSONObject(mMovieStr);
+
+            JSONObject movieDetailStr = movieJson.getJSONArray("results").getJSONObject(position);
+
+            movieID = movieDetailStr.getString("id");
+            //String[] split = movieID.split(" ");
+            //Log.v(LOG_TAG + " Movie ID ", movieDetailStr.toString());
+            return movieID;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public class FetchMovieTask extends AsyncTask<String, Void, String> {
@@ -202,9 +220,10 @@ public class GridViewFragment extends Fragment {
                     return null;
                 }
 
+
                 movieJsonStr = buffer.toString();
 
-                //Log.v(LOG_TAG, movieJsonStr);
+                //Log.v(LOG_TAG, mMovieJsonStr);
 
 
             } catch (IOException e) {
