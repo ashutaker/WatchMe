@@ -1,5 +1,4 @@
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,6 +7,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:context="com.example.android.watchme.app.DetailActivityFragment">
+        <ProgressBar
+            android:id="@+id/progress_details"
+            android:layout_centerInParent="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@android:style/Widget.Holo.ProgressBar.Large"/>
 
         <TextView
             android:id="@+id/movie_title"
@@ -19,7 +24,6 @@
             android:text="Movie Title"
             android:textAlignment="viewStart"
             android:textColor="#FFFFFF"
-
             android:textSize="50sp" />
 
         <ImageView
@@ -28,8 +32,7 @@
             android:layout_height="250dp"
             android:layout_below="@+id/movie_title"
             android:paddingLeft="16dp"
-            android:paddingTop="8dp"
-            android:src="@drawable/sample_0" />
+            android:paddingTop="8dp" />
 
         <TextView
             android:id="@+id/release_date"
@@ -68,7 +71,6 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:layout_alignEnd="@+id/runtime"
             android:layout_below="@+id/rating"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="10dp"
@@ -96,57 +98,65 @@
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_below="@+id/plot"
-            android:background="#080000"
-            android:orientation="vertical"
             android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp" />
+            android:layout_marginRight="16dp"
+            android:background="#080000"
+            android:orientation="vertical" />
 
         <LinearLayout
+            android:id="@+id/trailers_section"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/line1"
-            android:orientation="vertical"
-            android:id="@+id/trailers_section">
+            android:orientation="vertical">
 
             <TextView
+                android:id="@+id/trailer_head"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Trailers"
                 android:paddingLeft="16dp"
-                android:textSize="20sp"
-                android:id="@+id/trailer_head"/>
+                android:text="Trailers"
+                android:textSize="20sp" />
 
-            <ListView
+            <android.support.v7.widget.RecyclerView
                 android:id="@+id/trailer_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/trailer_head"></ListView>
-</LinearLayout>
+                android:layout_below="@id/trailer_head"/>
+        </LinearLayout>
+
         <LinearLayout
             android:id="@+id/line2"
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:layout_below="@+id/trailers_section"
-            android:background="#080000"
-            android:orientation="vertical"
             android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp" />
+            android:layout_marginRight="16dp"
+            android:background="#080000"
+            android:orientation="vertical" />
 
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/review_title"
-            android:text="Reviews"
-            android:paddingLeft="16dp"
-            android:textSize="20sp"
-            android:layout_below="@id/line2"/>
-        <ListView
+        <LinearLayout
+            android:id="@+id/review_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/review_list"
-            android:layout_below="@id/review_title">
+            android:layout_below="@id/line2"
+            android:orientation="vertical">
 
-        </ListView>
+            <TextView
+                android:id="@+id/review_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/line2"
+                android:paddingLeft="16dp"
+                android:text="Reviews"
+                android:textSize="20sp" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/review_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/review_title" />
+        </LinearLayout>
+
     </RelativeLayout>
 </ScrollView>

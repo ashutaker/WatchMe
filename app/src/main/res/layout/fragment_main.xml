@@ -4,6 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".GridViewFragment">
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@android:style/Widget.Holo.ProgressBar.Large"/>
     <GridView
         android:id="@+id/gridview"
         android:layout_width="wrap_content"
@@ -14,4 +20,5 @@
         android:horizontalSpacing="10dp"
         android:stretchMode="columnWidth"
         android:gravity="center"  />
-</RelativeLayout>
+
+   </RelativeLayout>

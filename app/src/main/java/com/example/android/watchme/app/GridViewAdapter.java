@@ -59,8 +59,6 @@ public class GridViewAdapter extends BaseAdapter {
         }
 
 
-        //Log.v("URI in adapter" , mUrls.get(position).toString());
-        //imageView.setImageResource(mUrls.get(position));
         Picasso.with(mContext)
                 .load(mUrls.get(position))
                 .into(imageView);
@@ -72,13 +70,4 @@ public class GridViewAdapter extends BaseAdapter {
         this.mUrls = urls;
         notifyDataSetChanged();
     }
-
-    // references to our images
-    Integer[] mThumbIds = {
-            R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
-            R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
-            R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
-            R.drawable.sample_6, R.drawable.sample_7, R.drawable.sample_0, R.drawable.sample_1,
-            R.drawable.sample_2, R.drawable.sample_3, R.drawable.sample_4, R.drawable.sample_5,
-    };
 }

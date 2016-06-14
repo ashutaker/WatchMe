@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,7 +29,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -38,10 +39,10 @@ public class GridViewFragment extends Fragment {
     public GridViewAdapter mGridViewAdapter;
     public ArrayList mGridViewData;
     public String mMovieStr;
+    private int mProgressStatus = 0;
     public final String LOG_TAG = GridViewFragment.class.getSimpleName();
 
-    // Will contain the raw JSON response as a string.
-    String movieJsonStr = null;
+    private ProgressBar mProgress;
 
     public GridViewFragment() {
     }
@@ -51,6 +52,7 @@ public class GridViewFragment extends Fragment {
 
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -79,12 +81,13 @@ public class GridViewFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        String[] mTempData = {"http://i.imgur.com/DvpvklR.png", "http://i.imgur.com/DvpvklR.png"};
 
-
-        mGridViewData = new ArrayList<String>(Arrays.asList(mTempData));
+        mGridViewData = new ArrayList<String>(Collections.<String>emptyList());
 
         mGridViewAdapter = new GridViewAdapter(getContext(), R.layout.grid_item_layout, mGridViewData);
+
+        mProgress = (ProgressBar) rootView.findViewById(R.id.progress);
+
 
 
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
@@ -118,7 +121,7 @@ public class GridViewFragment extends Fragment {
     }
 
     //Extract the Movie ID of the item selected, to be passed to DetailActivity
-    public String getSelectedMovie(int position){
+    public String getSelectedMovie(int position) {
 
         String movieID;
         try {
@@ -137,7 +140,7 @@ public class GridViewFragment extends Fragment {
         return null;
     }
 
-    public class FetchMovieTask extends AsyncTask<String, Void, String> {
+    public class FetchMovieTask extends AsyncTask<String, Integer, String> {
 
         private final String LOG_TAG = FetchMovieTask.class.getSimpleName();
 
@@ -171,11 +174,14 @@ public class GridViewFragment extends Fragment {
         }
 
 
+
         @Override
         protected String doInBackground(String... params) {
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
+
+
 
             // Will contain the raw JSON response as a string.
             String movieJsonStr = null;
@@ -215,6 +221,7 @@ public class GridViewFragment extends Fragment {
                 if ((line = reader.readLine()) != null) {
                     buffer.append(line + "\n");
                 }
+                publishProgress(50);
 
                 if (buffer.length() == 0) {
                     return null;
@@ -242,10 +249,21 @@ public class GridViewFragment extends Fragment {
                         Log.e(LOG_TAG, "Error closing stream", e);
                     }
                 }
+                publishProgress(100);
             }
 
 
             return movieJsonStr;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            mProgress.setProgress(values[0]);
+            if(values[0]==100)
+            {
+                mProgress.setVisibility(View.GONE);
+            }
+
         }
 
         @Override
@@ -269,12 +287,14 @@ public class GridViewFragment extends Fragment {
 
                     mGridViewAdapter.setData(mGridViewData);
 
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
             }
         }
+
     }
 }
 

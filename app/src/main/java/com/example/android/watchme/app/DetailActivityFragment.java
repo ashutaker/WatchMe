@@ -5,15 +5,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -29,23 +29,22 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * A placeholder fragment containing a simple view.
  */
 
-//TODO http://api.themoviedb.org/3/movie/244786/reviews?api_key=b523e1577f1f9b16d3fab2a699fe8b85
 
-//TODO http://api.themoviedb.org/3/movie/244786/videos?api_key=b523e1577f1f9b16d3fab2a699fe8b85
+public class DetailActivityFragment extends Fragment implements TrailerViewAdapter.ClickListener {
 
+    public final String LOG_TAG = DetailActivityFragment.class.getSimpleName();
 
-public class DetailActivityFragment extends Fragment {
+    private TrailerViewAdapter mTrailerListAdapter;
 
-    public final String LOG_TAG = DetailActivity.class.getSimpleName();
+    private ReviewAdapter mReviewListAdapter;
 
-    private ArrayAdapter<String> mTrailerListAdapter;
-
-    private ArrayAdapter<String> mReviewListAdapter;
+    private ProgressBar mDetailProgress;
 
     public DetailActivityFragment() {
     }
@@ -54,18 +53,19 @@ public class DetailActivityFragment extends Fragment {
     String mMovieId;
     View mRootView;
     String[] mTrailerKeys;
+    ArrayList<String> mTrailerNames;
+    ArrayList<String> mReviews;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         mRootView = inflater.inflate(R.layout.fragment_detail, container, false);
-        mTrailerListAdapter = new ArrayAdapter<String>(
-                getActivity(),
-                R.layout.trailers_list_item_layout,
-                R.id.trailer_link,
-                new ArrayList<String>());
+        mDetailProgress = (ProgressBar) mRootView.findViewById(R.id.progress_details);
 
+        mTrailerNames = new ArrayList<String>(Collections.<String>emptyList());
+        mReviews = new ArrayList<String>(Collections.<String>emptyList());
         // The detail Activity called via intent.  Inspect the intent for movie data.
         Intent intent = getActivity().getIntent();
 
@@ -73,31 +73,28 @@ public class DetailActivityFragment extends Fragment {
 
             mMovieId = intent.getStringExtra(Intent.EXTRA_TEXT);
             Log.v(LOG_TAG, mMovieId);
+
             FetchSelectedMovieTask movie = new FetchSelectedMovieTask();
             movie.execute(mMovieId);
 
             FetchSelectedMovieTrailers movieTrailers = new FetchSelectedMovieTrailers();
             movieTrailers.execute(mMovieId);
 
+            FetchSelectedMovieReview movieReviews = new FetchSelectedMovieReview();
+            movieReviews.execute(mMovieId);
+
         }
 
-        ListView viewTrailerList = (ListView) mRootView.findViewById(R.id.trailer_list);
+        RecyclerView viewTrailerList = (RecyclerView) mRootView.findViewById(R.id.trailer_list);
+        mTrailerListAdapter = new TrailerViewAdapter(getActivity(), mTrailerNames);
+        viewTrailerList.setLayoutManager(new LinearLayoutManager(viewTrailerList.getContext()));
         viewTrailerList.setAdapter(mTrailerListAdapter);
+        mTrailerListAdapter.setOnClickListener(this);
 
-        viewTrailerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                Uri uri = Uri.parse("http://www.youtube.com/watch").buildUpon()
-                        .appendQueryParameter("v", mTrailerKeys[position]).build();
-
-                Log.v(LOG_TAG, uri.toString());
-
-
-                Intent intentTrailer = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intentTrailer);
-            }
-        });
+        RecyclerView viewReviewList = (RecyclerView) mRootView.findViewById(R.id.review_list);
+        mReviewListAdapter = new ReviewAdapter(getActivity(), mReviews);
+        viewReviewList.setLayoutManager(new LinearLayoutManager(viewReviewList.getContext()));
+        viewReviewList.setAdapter(mReviewListAdapter);
 
         return mRootView;
     }
@@ -142,6 +139,16 @@ public class DetailActivityFragment extends Fragment {
                 .into((ImageView) rootView.findViewById(R.id.poster));
 
         return rootView;
+    }
+
+    @Override
+    public void itemClicked(View view, int position) {
+        Uri uri = Uri.parse("http://www.youtube.com/watch").buildUpon()
+                .appendQueryParameter("v", mTrailerKeys[position]).build();
+        //Log.v(LOG_TAG, uri.toString());
+        Intent intentTrailer = new Intent(Intent.ACTION_VIEW, uri);
+        startActivity(intentTrailer);
+
     }
 
 
@@ -216,9 +223,11 @@ public class DetailActivityFragment extends Fragment {
                 }
             } else {
                 Log.v(LOG_TAG, "No data received");
+
             }
         }
     }
+
 
     public class FetchSelectedMovieTrailers extends AsyncTask<String, Void, String> {
 
@@ -228,16 +237,17 @@ public class DetailActivityFragment extends Fragment {
                 JSONObject trailerJson = new JSONObject(movieTrailers);
                 JSONArray trailerArray = trailerJson.getJSONArray("results");
                 mTrailerKeys = new String[trailerArray.length()];
+                String[] trailerName = new String[trailerArray.length()];
                 for (int i = 0; i < trailerArray.length(); i++) {
                     mTrailerKeys[i] = trailerArray.getJSONObject(i).getString("key");
-                }
-                int count = 1;
-                for (String trailerLink : mTrailerKeys) {
-
-                    mTrailerListAdapter.add("Trailer " + String.valueOf(count));
-                    count++;
+                    trailerName[i] = trailerArray.getJSONObject(i).getString("name");
                 }
 
+                for (String name : trailerName) {
+                    mTrailerNames.add(name);
+                }
+                //Log.v(LOG_TAG, String.valueOf(mTrailerNames));
+                mTrailerListAdapter.swap(mTrailerNames);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -305,17 +315,38 @@ public class DetailActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String result) {
-
-
             if (result != null) {
                 getTrailersKeys(result);
-
             }
-
         }
     }
 
-    public class FetchSelectedMovieReview extends  AsyncTask<String,Void ,String>{
+    public class FetchSelectedMovieReview extends AsyncTask<String, Integer, String> {
+
+        public void getReviews(String movieReviews) {
+
+            try {
+                JSONObject reviewJson = new JSONObject(movieReviews);
+                JSONArray reviewsArray = reviewJson.getJSONArray("results");
+
+                String[] reviewStr = new String[reviewsArray.length()];
+                // mReviews = new ArrayList<String>(reviewsArray.length());
+
+                for (int i = 0; i < reviewsArray.length(); i++) {
+                    reviewStr[i] = reviewsArray.getJSONObject(i).getString("content");
+                }
+                for (String review : reviewStr) {
+                    mReviews.add(review);
+                    Log.v("Review Data : ", review);
+                }
+                mReviewListAdapter.swap(mReviews);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+
         @Override
         protected String doInBackground(String... params) {
             HttpURLConnection urlConnection = null;
@@ -355,6 +386,7 @@ public class DetailActivityFragment extends Fragment {
                 if (inputStream == null) {
                     return null;
                 }
+                publishProgress(30);
 
                 reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -371,13 +403,28 @@ public class DetailActivityFragment extends Fragment {
                 return null;
             }
 
-            Log.v(LOG_TAG + "trailers", reviewsJSONstr);
+            Log.v(LOG_TAG + " Reviews", reviewsJSONstr);
+            publishProgress(100);
             return reviewsJSONstr;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(String resultReview) {
+            if (resultReview != null) {
+                getReviews(resultReview);
+            } else {
+                Log.v(LOG_TAG, " no data");
+            }
         }
+
+        protected void onProgressUpdate(Integer... values) {
+            mDetailProgress.setProgress(values[0]);
+            if(values[0]==100)
+            {
+                mDetailProgress.setVisibility(View.GONE);
+            }
+
+        }
+
     }
 }
